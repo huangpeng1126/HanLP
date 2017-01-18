@@ -140,10 +140,15 @@ public class TestSegment extends TestCase
 
     public void testIssue3() throws Exception
     {
-        assertEquals(CharType.CT_DELIMITER, CharType.get('*'));;
+        assertEquals(CharType.CT_DELIMITER, CharType.get('*'));
         System.out.println(HanLP.segment("300g*2"));
         System.out.println(HanLP.segment("３００ｇ＊２"));
         System.out.println(HanLP.segment("鱼300克*2/组"));
+    }
+
+    public void testIssue313() throws Exception
+    {
+        System.out.println(HanLP.segment("hello\n" + "world"));
     }
 
     public void testQuickAtomSegment() throws Exception
@@ -164,8 +169,7 @@ public class TestSegment extends TestCase
         String text = "王总和小丽结婚了";
         Segment segment = new ViterbiSegment().enableAllNamedEntityRecognize(false)
                 .enableNameRecognize(false) // 人名识别需要二次维特比，比较慢
-                .enableCustomDictionary(false)
-                ;
+                .enableCustomDictionary(false);
         System.out.println(segment.seg(text));
         long start = System.currentTimeMillis();
         int pressure = 1000000;
@@ -173,7 +177,7 @@ public class TestSegment extends TestCase
         {
             segment.seg(text);
         }
-        double costTime = (System.currentTimeMillis() - start) / (double)1000;
+        double costTime = (System.currentTimeMillis() - start) / (double) 1000;
         System.out.printf("分词速度：%.2f字每秒", text.length() * pressure / costTime);
     }
 
@@ -238,13 +242,13 @@ public class TestSegment extends TestCase
         text = sbBigText.toString();
         long start = System.currentTimeMillis();
         List<Term> termList1 = segment.seg(text);
-        double costTime = (System.currentTimeMillis() - start) / (double)1000;
+        double costTime = (System.currentTimeMillis() - start) / (double) 1000;
         System.out.printf("单线程分词速度：%.2f字每秒\n", text.length() / costTime);
 
         segment.enableMultithreading(4);
         start = System.currentTimeMillis();
         List<Term> termList2 = segment.seg(text);
-        costTime = (System.currentTimeMillis() - start) / (double)1000;
+        costTime = (System.currentTimeMillis() - start) / (double) 1000;
         System.out.printf("四线程分词速度：%.2f字每秒\n", text.length() / costTime);
 
         assertEquals(termList1.size(), termList2.size());
@@ -318,7 +322,7 @@ public class TestSegment extends TestCase
 
     public void testIssue193() throws Exception
     {
-        String[] testCase = new String[] {
+        String[] testCase = new String[]{
                 "以每台约200元的价格送到苹果售后维修中心换新机（苹果的保修基本是免费换新机）",
                 "可能以2500~2800元的价格回收",
                 "3700个益农信息社打通服务“最后一公里”",
@@ -331,7 +335,8 @@ public class TestSegment extends TestCase
                 "则应从排名第八的投标人开始依次递补三名投标人"
         };
         Segment segment = HanLP.newSegment().enableOrganizationRecognize(true).enableNumberQuantifierRecognize(true);
-        for (String sentence : testCase) {
+        for (String sentence : testCase)
+        {
             List<Term> termList = segment.seg(sentence);
             System.out.println(termList);
         }
@@ -374,5 +379,24 @@ public class TestSegment extends TestCase
         String txt = "而其他肢解出去的七个贝尔公司如西南贝尔、太平洋贝尔、大西洋贝尔。";
         Segment seg_viterbi = new ViterbiSegment().enablePartOfSpeechTagging(true).enableOffset(true).enableNameRecognize(true).enablePlaceRecognize(true).enableOrganizationRecognize(true).enableNumberQuantifierRecognize(true);
         System.out.println(seg_viterbi.seg(txt));
+    }
+
+    public void testIssue343() throws Exception
+    {
+        CustomDictionary.insert("酷我");
+        CustomDictionary.insert("酷我音乐");
+        Segment segment = HanLP.newSegment().enableIndexMode(true);
+        System.out.println(segment.seg("1酷我音乐2酷我音乐3酷我4酷我音乐6酷7酷我音乐"));
+    }
+
+    public void testIssue358() throws Exception
+    {
+        HanLP.Config.enableDebug();
+        String text = "受约束，需要遵守心理学会所定的道德原则，所需要时须说明该实验与所能得到的知识的关系";
+
+        Segment segment = StandardTokenizer.SEGMENT.enableAllNamedEntityRecognize(false).enableCustomDictionary(false)
+                .enableOrganizationRecognize(true);
+
+        System.out.println(segment.seg(text));
     }
 }
